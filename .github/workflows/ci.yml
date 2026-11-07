@@ -23,7 +23,7 @@ jobs:
       run:
         working-directory: api
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: exists
         working-directory: .
         run: echo "found=$([ -f api/pyproject.toml ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
@@ -48,7 +48,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: exists
         working-directory: .
         run: echo "found=$([ -f frontend/package-lock.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
@@ -72,7 +72,7 @@ jobs:
       run:
         working-directory: infra
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: exists
         working-directory: .
         run: echo "found=$(ls infra/*.tf >/dev/null 2>&1 && echo true || echo false)" >> "$GITHUB_OUTPUT"
@@ -91,7 +91,7 @@ jobs:
       contents: read
       pull-requests: read  # gitleaks-action がPRのコミット一覧を読むため
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: gitleaks(秘匿情報の検出)
