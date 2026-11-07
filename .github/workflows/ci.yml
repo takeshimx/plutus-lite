@@ -23,12 +23,12 @@ jobs:
       run:
         working-directory: api
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - id: exists
         working-directory: .
         run: echo "found=$([ -f api/pyproject.toml ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - if: steps.exists.outputs.found == 'true'
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           python-version: "3.12"
           enable-cache: true
@@ -48,12 +48,12 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - id: exists
         working-directory: .
         run: echo "found=$([ -f frontend/package-lock.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - if: steps.exists.outputs.found == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
@@ -72,12 +72,12 @@ jobs:
       run:
         working-directory: infra
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - id: exists
         working-directory: .
         run: echo "found=$(ls infra/*.tf >/dev/null 2>&1 && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - if: steps.exists.outputs.found == 'true'
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
       - if: steps.exists.outputs.found == 'true'
         run: terraform fmt -check -recursive
       # バックエンドに接続せず構文だけ確認する。plan はP4で別のワークフローに置く
@@ -91,11 +91,11 @@ jobs:
       contents: read
       pull-requests: read  # gitleaks-action がPRのコミット一覧を読むため
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
       - name: gitleaks(秘匿情報の検出)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: semgrep(静的解析)
