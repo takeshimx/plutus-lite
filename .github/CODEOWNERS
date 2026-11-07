@@ -1,0 +1,23 @@
+# 高リスク領域(AGENTS.md「人の承認が必要な領域」と一致させる)
+# ブランチ保護で「コードオーナーの承認を必須」にしたときに強制される。
+# 後に書いた行が優先されるため、全体の指定は置かない。
+
+# 認証と許可リスト(A1)
+/api/app/auth/              @takeshimx
+
+# データアクセスと user_id 条件(A3、A4)
+/api/app/repository/        @takeshimx
+
+# IaC
+/infra/                     @takeshimx
+
+# CI/CDとリポジトリ設定
+/.github/                   @takeshimx
+/cloudbuild*.yaml           @takeshimx
+
+# 規約
+/AGENTS.md                  @takeshimx
+/CLAUDE.md                  @takeshimx
+
+# 評価ゲートの基準と golden set
+/eval/                      @takeshimx
