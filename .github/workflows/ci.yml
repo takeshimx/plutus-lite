@@ -77,7 +77,7 @@ jobs:
         working-directory: .
         run: echo "found=$(ls infra/*.tf >/dev/null 2>&1 && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - if: steps.exists.outputs.found == 'true'
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
       - if: steps.exists.outputs.found == 'true'
         run: terraform fmt -check -recursive
       # バックエンドに接続せず構文だけ確認する。plan はP4で別のワークフローに置く
