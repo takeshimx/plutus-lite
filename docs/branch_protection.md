@@ -4,8 +4,8 @@
 
 ## 前提
 
-- このリポジトリは private。GitHub Free では、private リポジトリのルールセットとブランチ保護は強制されない。GitHub Pro 以上にするか、リポジトリを public にする必要がある
-- 現状(2026-11-07): GitHub Free。Pro にするか public にするかは未決定
+- GitHub Free では、private リポジトリのルールセットとブランチ保護は強制されない
+- 決定(2026-11-07): リポジトリを public にする。公開前に、コミットの作者のメールアドレスを GitHub の noreply アドレスに書き換えた。書き換え前のコミットが PR の履歴に残らないよう、リポジトリを作り直した
 
 ## 設定(Settings > Rules > Rulesets > New branch ruleset)
 
