@@ -13,7 +13,7 @@
 | --- | --- |
 | Ruleset name | main-protection |
 | Enforcement status | Active |
-| Bypass list | 空(管理者も迂回しない) |
+| Bypass list | Repository admin、モードは For pull requests only(下の「人が作るPRの迂回」を参照) |
 | Target branches | Default branch |
 | Restrict deletions | オン |
 | Block force pushes | オン |
@@ -38,13 +38,31 @@ GitHub では、PRの作成者は自分のPRを承認できない。エージェ
 
 決定(2026-11-07): 案A。エージェントのPRは bot 名義で作り、人(`takeshimx`)が承認する。
 
+## 人が作るPRの迂回
+
+コードオーナーは `takeshimx` だけのため、人が自分で作ったPRは、承認できる人がいない。そこで、Repository admin に限って、PR経由でのみルールの迂回を許す。
+
+決定(2026-11-11): 迂回を許す。設定は1つのルールセットのまま。
+
+- 直接 push は、admin も含めて拒否される
+- 自分のPRは、マージ画面の「Merge without waiting for requirements to be met (bypass rules)」でマージできる
+- bot は Write 権限のため迂回できない。bot のPRは人の承認が必要
+- 注意: 迂回はルールセット全体に効くため、承認だけでなく必須チェック `ci-ok` も飛ばせる。**迂回マージは `ci-ok` が成功しているときだけ行う**(運用で守る)。CIも強制したくなったら、CIとレビューを別のルールセットに分け、レビューの方だけ迂回を許す
+
 ## 完了条件の確認(P3)
 
-- [ ] 空のPRを作り、`ci-ok` が実行されて成功する
-- [ ] main への直接 push が拒否される
-- [ ] `infra/` などの高リスクパスを変更したPRで、コードオーナーのレビュー依頼が自動で付く
-- [ ] CIが失敗するPRがマージできない
+- [x] 空のPRを作り、`ci-ok` が実行されて成功する
+- [x] main への直接 push が拒否される
+- [x] `infra/` などの高リスクパスを変更したPRで、コードオーナーのレビュー依頼が自動で付く
+- [x] CIが失敗するPRがマージできない
 
 ## 確認結果
 
-<!-- 日付、確認した人、結果 -->
+| 日付 | 確認した人 | 条件 | 結果 |
+| --- | --- | --- | --- |
+| 2026-11-07 | Claude Code | `ci-ok` が成功する | PR #1 で全ジョブ成功 |
+| 2026-11-07 | Claude Code | コードオーナーのレビュー依頼 | Dependabot の PR #6(`.github/` を変更)に `takeshimx` のレビュー依頼が自動で付き、承認待ちで BLOCKED |
+| 2026-11-11 | Claude Code | 直接 push の拒否 | main への空コミットの push が拒否された(`Changes must be made through a pull request.` `Required status check "ci-ok" is expected.`)。main は変化なし |
+| 2026-11-11 | Claude Code | CI失敗時のマージ不可 | PR #7(lockfile の無い `api/pyproject.toml` を追加)で `ci-ok` が失敗。必須チェックが FAILURE で BLOCKED、マージは拒否された。ルールセットの迂回は `current_user_can_bypass: never`。PR #7 はマージせず閉じた |
+
+注: PR #7 はレビュー承認も未取得だったため、BLOCKED の理由は CI 失敗と承認待ちの両方を含む。CI 失敗が必須条件であることは、必須チェック `ci-ok` が FAILURE であることで確認した。

@@ -81,6 +81,7 @@
 - PR本文にリスク区分(Low / Medium / High)を書く。区分は次の表で決める
 - 完了条件: CIと評価ゲートが通過していること
 - main への直接pushはしない
+- PRをマージしない。マージは人が行う。ルールの迂回(`gh pr merge --admin` など)は使わない
 - PR、Issue、ADR は英語で書く。ADR の冒頭の TL;DR だけは英語と日本語を併記する(テンプレート: `docs/adr/0000-template.md`)
 
 | 区分 | このリポジトリでの対象 |
