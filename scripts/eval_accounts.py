@@ -4,12 +4,11 @@ Only talks to the emulator (FIREBASE_AUTH_EMULATOR_HOST). Never use against real
 Output: lines of KEY=VALUE for the evaluation suite.
 """
 
-import json
 import os
 import sys
-import urllib.error
-import urllib.request
 from typing import Any
+
+import httpx
 
 HOST = os.environ.get("FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1:9099")
 PROJECT = os.environ.get("GCP_PROJECT_ID", "demo-plutus-lite")
@@ -24,22 +23,20 @@ ACCOUNTS = {
 
 
 def post(url: str, body: dict[str, Any], owner: bool = False) -> dict[str, Any]:
-    if not url.startswith("http://127.0.0.1:") and not url.startswith("http://localhost:"):
+    if not url.startswith(("http://127.0.0.1:", "http://localhost:")):
         sys.exit("refusing to call a non-emulator host")
-    headers = {"Content-Type": "application/json"}
-    if owner:
-        headers["Authorization"] = "Bearer owner"  # 模擬版の管理者用
-    req = urllib.request.Request(url, data=json.dumps(body).encode(), headers=headers, method="POST")  # noqa: S310
-    with urllib.request.urlopen(req) as res:  # noqa: S310
-        result: dict[str, Any] = json.load(res)
-        return result
+    headers = {"Authorization": "Bearer owner"} if owner else {}  # 模擬版の管理者用
+    res = httpx.post(url, json=body, headers=headers, timeout=10)
+    res.raise_for_status()
+    result: dict[str, Any] = res.json()
+    return result
 
 
 def token_for(email: str) -> str:
     try:
         user = post(f"{BASE}/accounts:signUp?key=fake", {"email": email, "password": PASSWORD})
         local_id = user["localId"]
-    except urllib.error.HTTPError:
+    except httpx.HTTPStatusError:
         user = post(f"{BASE}/accounts:signInWithPassword?key=fake", {"email": email, "password": PASSWORD})
         local_id = user["localId"]
     post(f"{BASE}/projects/{PROJECT}/accounts:update", {"localId": local_id, "emailVerified": True}, owner=True)
