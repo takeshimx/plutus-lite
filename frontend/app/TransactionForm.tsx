@@ -7,14 +7,17 @@ import type { TransactionInput, TransactionType } from "@/lib/transactions";
 
 interface Props {
   onSubmit: (input: TransactionInput) => Promise<void>;
+  initial?: TransactionInput;
+  submitLabel?: string;
+  onCancel?: () => void;
 }
 
-export default function TransactionForm({ onSubmit }: Props) {
-  const [date, setDate] = useState(today());
-  const [type, setType] = useState<TransactionType>("expense");
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("");
-  const [note, setNote] = useState("");
+export default function TransactionForm({ onSubmit, initial, submitLabel = "登録", onCancel }: Props) {
+  const [date, setDate] = useState(initial?.date ?? today());
+  const [type, setType] = useState<TransactionType>(initial?.type ?? "expense");
+  const [amount, setAmount] = useState(initial ? String(initial.amount_jpy) : "");
+  const [category, setCategory] = useState(initial?.category ?? "");
+  const [note, setNote] = useState(initial?.note ?? "");
   const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent) {
@@ -51,8 +54,13 @@ export default function TransactionForm({ onSubmit }: Props) {
       <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="カテゴリ" required aria-label="カテゴリ" />
       <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="メモ" maxLength={200} aria-label="メモ" />
       <button type="submit" disabled={busy}>
-        登録
+        {submitLabel}
       </button>
+      {onCancel && (
+        <button type="button" onClick={onCancel}>
+          キャンセル
+        </button>
+      )}
     </form>
   );
 }

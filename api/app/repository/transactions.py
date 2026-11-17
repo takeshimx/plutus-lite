@@ -104,20 +104,43 @@ class TransactionRepository:
         )
         return created
 
-    def _owns(self, transaction_id: str) -> bool:
-        """自分の取引として存在するか。DML の影響件数は模擬版では返らないため、先に確かめる。"""
+    def get(self, transaction_id: str) -> Transaction | None:
+        """自分の取引を1件取得する。無い(他人の取引を含む)ときは None。"""
         sql = (
-            f"SELECT COUNT(*) AS n FROM `{self._table}` "  # noqa: S608
+            f"SELECT {_COLUMNS} FROM `{self._table}` "  # noqa: S608
             f"WHERE {_USER_CONDITION} AND transaction_id = @transaction_id"
         )
         rows = list(
             self._run(sql, [bigquery.ScalarQueryParameter("transaction_id", "STRING", transaction_id)]).result()
         )
-        return bool(rows and rows[0].n)
+        return Transaction(**dict(rows[0].items())) if rows else None
+
+    def update(self, transaction_id: str, data: TransactionInput) -> Transaction | None:
+        """自分の取引だけを更新する。DML の影響件数は模擬版では返らないため、先に存在を確かめる。"""
+        current = self.get(transaction_id)
+        if current is None:
+            return None
+        sql = (
+            f"UPDATE `{self._table}` "  # noqa: S608
+            "SET date = @date, type = @type, amount_jpy = @amount_jpy, category = @category, note = @note "
+            f"WHERE {_USER_CONDITION} AND transaction_id = @transaction_id"
+        )
+        self._run(
+            sql,
+            [
+                bigquery.ScalarQueryParameter("transaction_id", "STRING", transaction_id),
+                bigquery.ScalarQueryParameter("date", "DATE", data.date),
+                bigquery.ScalarQueryParameter("type", "STRING", data.type),
+                bigquery.ScalarQueryParameter("amount_jpy", "INT64", data.amount_jpy),
+                bigquery.ScalarQueryParameter("category", "STRING", data.category),
+                bigquery.ScalarQueryParameter("note", "STRING", data.note),
+            ],
+        )
+        return current.model_copy(update=data.model_dump())
 
     def delete(self, transaction_id: str) -> bool:
         """自分の取引だけを削除する。対象が無い(他人の取引を含む)ときは False。"""
-        if not self._owns(transaction_id):
+        if self.get(transaction_id) is None:
             return False
         sql = f"DELETE FROM `{self._table}` WHERE {_USER_CONDITION} AND transaction_id = @transaction_id"  # noqa: S608
         self._run(sql, [bigquery.ScalarQueryParameter("transaction_id", "STRING", transaction_id)])
