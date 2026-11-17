@@ -86,7 +86,7 @@ user_b(2026-11): 収入 500,000、支出 99,999。user_a の結果に、user_b �
     uv run pytest
 
 - `test_golden_integrity.py` は常に実行する。`expected.json` が `dataset.json` から計算した値と一致し、G5 で承認した値から変わっていないことを確かめる
-- それ以外のテストは、`gate.json` の `enabled_features` に機能名を入れたときだけ実行する。機能名は `auth`、`crud`、`isolation`、`list`、`summary`
+- それ以外のテストは、`gate.json` の `enabled_features` に機能名を入れたときだけ実行する。機能名は `auth`、`crud`、`edit`、`isolation`、`list`、`summary`
 - 機能を有効にすると、API の接続先とテスト用アカウントのトークン(`EVAL_BASE_URL`、`EVAL_TOKEN_USER_A`、`EVAL_TOKEN_USER_B`、`EVAL_TOKEN_NOT_ALLOWED`)が必須になる。無ければ合格せずにエラーになる
 - テスト用アカウントは、取引が0件の状態で始まることを前提にする
 

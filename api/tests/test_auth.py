@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from app.auth import get_token_verifier
 from app.config import Settings, get_settings
 from app.main import create_app
+from app.repository import get_repository
 
 TOKENS: dict[str, dict[str, Any]] = {
     "allowed": {"uid": "uid-a", "email": "A@Example.com", "email_verified": True},
@@ -24,6 +25,11 @@ def fake_verify(token: str) -> dict[str, Any]:
     return TOKENS[token]
 
 
+class EmptyRepo:
+    def list(self, month: str | None) -> list[Any]:
+        return []
+
+
 @pytest.fixture
 def client() -> Iterator[TestClient]:
     settings = Settings(
@@ -36,6 +42,7 @@ def client() -> Iterator[TestClient]:
     app = create_app()
     app.dependency_overrides[get_settings] = lambda: settings
     app.dependency_overrides[get_token_verifier] = lambda: fake_verify
+    app.dependency_overrides[get_repository] = lambda: EmptyRepo()
     with TestClient(app) as c:
         yield c
 
@@ -73,8 +80,7 @@ def test_unverified_email_is_403(client: TestClient) -> None:
 
 
 def test_allowed_email_passes_auth_case_insensitive(client: TestClient) -> None:
-    # 認証は通り、未実装の 501 になる(#12 で実装)
-    assert client.get("/api/transactions", headers=h("allowed")).status_code == 501
+    assert client.get("/api/transactions", headers=h("allowed")).status_code == 200
 
 
 def test_non_bearer_scheme_is_401(client: TestClient) -> None:
