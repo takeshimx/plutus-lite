@@ -14,6 +14,7 @@ import {
   type TransactionInput,
 } from "@/lib/transactions";
 
+import Summary from "./Summary";
 import TransactionForm from "./TransactionForm";
 
 const TYPE_LABEL = { income: "収入", expense: "支出" } as const;
@@ -82,6 +83,7 @@ export default function Transactions({ user }: { user: User }) {
       <label>
         月: <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
       </label>
+      <Summary user={user} month={month} version={version} />
       <table>
         <thead>
           <tr>

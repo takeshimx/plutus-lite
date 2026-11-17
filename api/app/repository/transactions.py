@@ -7,6 +7,7 @@
 - 登録は DML の INSERT で行う。ストリーミング挿入は、直後に UPDATE / DELETE できないため使わない
 """
 
+import builtins
 import uuid
 from datetime import UTC, date, datetime
 from functools import lru_cache
@@ -19,7 +20,7 @@ from google.cloud import bigquery
 
 from app.auth import CurrentUser, get_current_user
 from app.config import Settings, get_settings
-from app.schemas import Transaction, TransactionInput
+from app.schemas import CategoryTotal, MonthlySummary, Transaction, TransactionInput
 
 _COLUMNS = "transaction_id, date, type, amount_jpy, category, note, created_at"
 _USER_CONDITION = "user_id = @user_id"
@@ -79,6 +80,37 @@ class TransactionRepository:
         sql = f"SELECT {_COLUMNS} FROM `{self._table}` WHERE {where} ORDER BY date DESC, created_at DESC"  # noqa: S608
         rows = self._run(sql, params).result()
         return [Transaction(**dict(row.items())) for row in rows]
+
+    def monthly_summary(self) -> builtins.list[MonthlySummary]:
+        """月ごとの収入合計、支出合計、支出のカテゴリ別内訳。合計はすべて SQL で計算する(A6、ADR-003)。
+
+        一覧と同じ _scope() で絞るため、同じ月の一覧の合計と必ず一致する(A4)。
+        金額は符号のまま足す。支出のマイナスは返金、収入のマイナスは訂正として差し引かれる。
+        """
+        where, params = self._scope(None)
+        totals_sql = (
+            "SELECT FORMAT_DATE('%Y-%m', date) AS month, "  # noqa: S608  値はすべてパラメータ
+            "SUM(IF(type = 'income', amount_jpy, 0)) AS income_total, "
+            "SUM(IF(type = 'expense', amount_jpy, 0)) AS expense_total "
+            f"FROM `{self._table}` WHERE {where} GROUP BY month ORDER BY month DESC"
+        )
+        categories_sql = (
+            "SELECT FORMAT_DATE('%Y-%m', date) AS month, category, SUM(amount_jpy) AS total "  # noqa: S608
+            f"FROM `{self._table}` WHERE {where} AND type = 'expense' "
+            "GROUP BY month, category ORDER BY month DESC, total DESC, category"
+        )
+        by_month: dict[str, builtins.list[CategoryTotal]] = {}
+        for row in self._run(categories_sql, params).result():
+            by_month.setdefault(row.month, []).append(CategoryTotal(category=row.category, total=row.total))
+        return [
+            MonthlySummary(
+                month=row.month,
+                income_total=row.income_total,
+                expense_total=row.expense_total,
+                expense_by_category=by_month.get(row.month, []),
+            )
+            for row in self._run(totals_sql, params).result()
+        ]
 
     def create(self, data: TransactionInput) -> Transaction:
         created = Transaction(

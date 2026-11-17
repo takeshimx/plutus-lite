@@ -50,3 +50,32 @@ td {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+.summary dl {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  gap: 4px 16px;
+}
+
+.summary dd {
+  margin: 0;
+}
+
+.bars {
+  list-style: none;
+  padding: 0;
+}
+
+.bars li {
+  display: grid;
+  grid-template-columns: 8em 1fr 8em;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.bar {
+  height: 14px;
+  background: #4a7bd0;
+  border-radius: 3px;
+}
