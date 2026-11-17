@@ -9,6 +9,7 @@ import {
   createTransaction,
   deleteTransaction,
   listTransactions,
+  updateTransaction,
   type Transaction,
   type TransactionInput,
 } from "@/lib/transactions";
@@ -21,6 +22,7 @@ export default function Transactions({ user }: { user: User }) {
   const [month, setMonth] = useState(currentMonth());
   const [rows, setRows] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
 
   // 登録・削除のたびに数を増やし、一覧を読み直す
   const [version, setVersion] = useState(0);
@@ -49,6 +51,17 @@ export default function Transactions({ user }: { user: User }) {
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "登録に失敗しました");
       throw e; // フォームの入力を消さないため
+    }
+  }
+
+  async function save(id: string, input: TransactionInput) {
+    try {
+      await updateTransaction(user, id, input);
+      setEditing(null);
+      reload();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "更新に失敗しました");
+      throw e;
     }
   }
 
@@ -81,7 +94,19 @@ export default function Transactions({ user }: { user: User }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((t) => (
+          {rows.map((t) =>
+            editing === t.transaction_id ? (
+              <tr key={t.transaction_id}>
+                <td colSpan={6}>
+                  <TransactionForm
+                    initial={t}
+                    submitLabel="保存"
+                    onSubmit={(input) => save(t.transaction_id, input)}
+                    onCancel={() => setEditing(null)}
+                  />
+                </td>
+              </tr>
+            ) : (
             <tr key={t.transaction_id}>
               <td>{t.date}</td>
               <td>{TYPE_LABEL[t.type]}</td>
@@ -89,10 +114,12 @@ export default function Transactions({ user }: { user: User }) {
               <td>{t.category}</td>
               <td>{t.note}</td>
               <td>
+                <button onClick={() => setEditing(t.transaction_id)}>編集</button>{" "}
                 <button onClick={() => remove(t.transaction_id)}>削除</button>
               </td>
             </tr>
-          ))}
+            ),
+          )}
           {rows.length === 0 && (
             <tr>
               <td colSpan={6}>この月の取引はありません</td>
