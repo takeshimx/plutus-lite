@@ -55,7 +55,7 @@ steps:
     args: ["push", "--all-tags", "${_REPO}/web"]
     waitFor: ["build-web"]
 
-  # 環境変数の区切りに "@" を使う(許可リストに "," を含められるようにするため)
+  # 環境変数の区切りに "|" を使う(許可リストのメールアドレスに含まれる "," や "@" と衝突しないようにするため)
   - id: deploy-api
     name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
     entrypoint: gcloud
@@ -65,7 +65,7 @@ steps:
       - plutus-lite-api
       - --image=${_REPO}/api:${SHORT_SHA}
       - --region=${_REGION}
-      - --update-env-vars=^@^GCP_PROJECT_ID=${PROJECT_ID}@BQ_DATASET=plutus_lite@CORS_ORIGINS=${_WEB_URL}@ALLOWED_EMAILS=${_ALLOWED_EMAILS}
+      - --update-env-vars=^|^GCP_PROJECT_ID=${PROJECT_ID}|BQ_DATASET=plutus_lite|CORS_ORIGINS=${_WEB_URL}|ALLOWED_EMAILS=${_ALLOWED_EMAILS}
     waitFor: ["push"]
 
   - id: deploy-web
