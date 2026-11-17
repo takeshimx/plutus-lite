@@ -8,6 +8,9 @@
 # データアクセスと user_id 条件(A3、A4)
 /api/app/repository/        @takeshimx
 
+# レート制限
+/api/app/ratelimit.py       @takeshimx
+
 # IaC
 /infra/                     @takeshimx
 

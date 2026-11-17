@@ -1,11 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.auth import get_current_user
+from app.ratelimit import rate_limit
 from app.repository import TransactionRepository, get_repository
 from app.schemas import Month, Transaction, TransactionCreated, TransactionInput
 
 # すべてのエンドポイントで認証を必須にする。データアクセスは必ずリポジトリを通す(user_id はそこで付く)
-router = APIRouter(prefix="/api/transactions", tags=["transactions"], dependencies=[Depends(get_current_user)])
+router = APIRouter(
+    prefix="/api/transactions",
+    tags=["transactions"],
+    dependencies=[Depends(get_current_user), Depends(rate_limit)],
+)
 
 
 def _not_found() -> HTTPException:

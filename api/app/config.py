@@ -10,6 +10,7 @@ class Settings:
     allowed_emails: frozenset[str]
     cors_origins: tuple[str, ...]
     bigquery_emulator_host: str | None
+    rate_limit_per_minute: int = 60
 
 
 def _split(value: str) -> list[str]:
@@ -25,4 +26,5 @@ def get_settings() -> Settings:
         allowed_emails=frozenset(e.lower() for e in _split(os.environ.get("ALLOWED_EMAILS", ""))),
         cors_origins=tuple(_split(os.environ.get("CORS_ORIGINS", ""))),
         bigquery_emulator_host=os.environ.get("BIGQUERY_EMULATOR_HOST") or None,
+        rate_limit_per_minute=int(os.environ.get("RATE_LIMIT_PER_MINUTE", "60")),
     )
