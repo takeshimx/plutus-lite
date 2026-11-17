@@ -42,6 +42,16 @@
     terraform destroy -var=allow_destroy=true
     terraform apply                              # 再作成
 
+    cd project-iam && terraform apply            # 人が実行する
+
+サービスアカウントを作り直すと、GCP は同じ名前でも別物として扱う。そのため、`project-iam` の権限は削除済みのサービスアカウントを指したまま残り、新しいサービスアカウントには付かない。再作成のたびに、人が `project-iam` を apply し直す。
+
+### 実施記録
+
+| 日付 | 結果 |
+| --- | --- |
+| 2026-11-17 | 破棄 18件(25秒)、再作成 18件(44秒)。再作成後の plan は差分なし。API と画面の URL は 200。`project-iam` を人が再 apply し、`bigquery.jobUser` が新しいサービスアカウントに付いたことを確認。A7 達成 |
+
 ## Terraform が管理しないもの
 
 - Cloud Run のイメージと環境変数: Cloud Build がデプロイ時に設定する
