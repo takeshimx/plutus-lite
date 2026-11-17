@@ -1,0 +1,47 @@
+[project]
+name = "plutus-lite-api"
+version = "0.1.0"
+description = "Plutus Lite API"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "firebase-admin>=6.5",
+    "google-cloud-bigquery>=3.25",
+    "pydantic>=2.9",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28",
+    "mypy>=1.13",
+    "pytest>=8.3",
+    "ruff>=0.8",
+]
+
+[tool.uv]
+package = false
+exclude-newer = "7 days"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "N"]
+ignore = ["B008"] # FastAPI の Depends() を引数の既定値に書くため
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S105", "S106"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["firebase_admin.*", "google.cloud.*", "google.api_core.*", "google.auth.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

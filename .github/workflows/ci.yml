@@ -55,7 +55,7 @@ jobs:
       - if: steps.exists.outputs.found == 'true'
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - if: steps.exists.outputs.found == 'true'
@@ -64,6 +64,8 @@ jobs:
         run: npm run lint && npm run typecheck
       - if: steps.exists.outputs.found == 'true'
         run: npm test
+      - if: steps.exists.outputs.found == 'true'
+        run: npm run build
 
   infra:
     runs-on: ubuntu-latest
@@ -103,22 +105,24 @@ jobs:
           pipx run semgrep scan --config p/default --error --metrics=off
 
   # 評価ゲート(P5)。golden set の整合性は常に検査する。
-  # 各機能のケースは eval/gate.json で有効にしたものだけが対象になる。
-  # 機能を有効にした後、API を起動して EVAL_* を渡す手順は P6 で追加する。
+  # eval/gate.json で機能が有効なら、模擬版の Firebase Auth と BigQuery、API を起動してから実行する
   eval:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: eval
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           python-version: "3.12"
           enable-cache: true
-      - run: uv sync --locked
-      - run: uv run pytest
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+      - run: cd eval && uv sync --locked
+      - run: cd api && uv sync --locked
+      - run: scripts/eval_run.sh
+      - if: failure()
+        run: tail -n 100 .eval-logs/*.log || true
 
   # ブランチ保護で必須にするのはこのジョブだけ。
   # ジョブを増減しても保護ルールを書き換えずに済む。

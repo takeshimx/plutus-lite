@@ -43,3 +43,9 @@ Thumbs.db
 # Claude Code の個人設定
 .claude/settings.local.json
 tfplan
+
+# 評価ゲートの実行時に作られるもの
+.eval.env
+.eval-logs/
+firebase-debug.log
+next-env.d.ts

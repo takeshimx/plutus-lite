@@ -1,0 +1,16 @@
+# BigQuery 模擬版の初期データ。テーブル定義は infra/bigquery.tf と一致させる
+projects:
+  - id: demo-plutus-lite
+    datasets:
+      - id: plutus_lite
+        tables:
+          - id: transactions
+            columns:
+              - { name: transaction_id, type: STRING, mode: REQUIRED }
+              - { name: user_id, type: STRING, mode: REQUIRED }
+              - { name: date, type: DATE, mode: REQUIRED }
+              - { name: type, type: STRING, mode: REQUIRED }
+              - { name: amount_jpy, type: INT64, mode: REQUIRED }
+              - { name: category, type: STRING, mode: REQUIRED }
+              - { name: note, type: STRING, mode: NULLABLE }
+              - { name: created_at, type: TIMESTAMP, mode: REQUIRED }

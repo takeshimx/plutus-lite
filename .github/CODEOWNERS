@@ -21,3 +21,4 @@
 
 # 評価ゲートの基準と golden set
 /eval/                      @takeshimx
+/scripts/eval_*             @takeshimx
