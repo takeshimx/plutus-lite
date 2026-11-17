@@ -26,10 +26,14 @@ def create_transaction(body: TransactionInput, repo: TransactionRepository = Dep
     return repo.create(body)
 
 
-@router.put("/{transaction_id}")
-def update_transaction(transaction_id: str) -> None:  # noqa: ARG001
-    # Issue #13 で実装する
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Not implemented yet")
+@router.put("/{transaction_id}", response_model=Transaction)
+def update_transaction(
+    transaction_id: str, body: TransactionInput, repo: TransactionRepository = Depends(get_repository)
+) -> Transaction:
+    updated = repo.update(transaction_id, body)
+    if updated is None:
+        raise _not_found()
+    return updated
 
 
 @router.delete("/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
