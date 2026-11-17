@@ -98,7 +98,7 @@
 - 認証と許可リスト: `api/app/auth/`
 - データアクセスと user_id 条件: `api/app/repository/`
 - テーブル定義とスキーマ変更
-- レート制限の設定
+- レート制限の設定: `api/app/ratelimit.py`
 - IaC: `infra/`
 - CI/CDとリポジトリ設定: `.github/`、`cloudbuild*.yaml`、`CODEOWNERS`
 - この規約自体: `AGENTS.md`、`CLAUDE.md`
