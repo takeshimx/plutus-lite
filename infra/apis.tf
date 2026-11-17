@@ -10,6 +10,7 @@ locals {
     "iamcredentials.googleapis.com",
     "identitytoolkit.googleapis.com",
     "run.googleapis.com",
+    "secretmanager.googleapis.com",
   ]
 }
 

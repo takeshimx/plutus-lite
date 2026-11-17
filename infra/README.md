@@ -5,7 +5,7 @@
 | ディレクトリ | 内容 | apply する人 |
 | --- | --- | --- |
 | `infra/` | API の有効化、BigQuery、Artifact Registry、実行用サービスアカウント、Cloud Run | エージェント(G4 で plan の承認後) |
-| `infra/project-iam/` | プロジェクト単位の IAM | 人 |
+| `infra/project-iam/` | プロジェクト単位の IAM、許可リストのシークレット | 人 |
 
 本番環境はここでは作らない(P9 で決める)。
 
@@ -55,6 +55,6 @@
 ## Terraform が管理しないもの
 
 - Cloud Run のイメージと環境変数: Cloud Build がデプロイ時に設定する
-- 許可リスト(`ALLOWED_EMAILS`): メールアドレスを含むため、リポジトリに書かない
+- 許可リストの値: Secret Manager(`plutus-lite-allowed-emails`)に人が登録する。入れ物と読み取り権限は `project-iam/` で作る
 - Firebase Authentication の Google ログイン設定: 後続のPRで扱う
 - 予算アラートと state バケット: P0 で人が作成済み(`docs/p0_setup.md`)
