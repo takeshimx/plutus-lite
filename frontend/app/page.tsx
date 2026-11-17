@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 
 import { getFirebaseAuth } from "@/lib/firebase";
 
+import Transactions from "./Transactions";
+
 export default function Home() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function Home() {
         )}
       </header>
       {error && <p className="error">{error}</p>}
-      {user && <p>ログインしました。取引の登録と一覧は次の更新で追加します。</p>}
+      {user && <Transactions user={user} />}
     </main>
   );
 }

@@ -1,4 +1,4 @@
-"""A2: create, update, delete. A5: integer yen, negatives allowed, invalid input is 400. Cases E04-E06, E12-E20."""
+"""A2: create, edit, delete. A5: integer yen, negatives allowed, invalid input is 400. Cases E04-E06, E12-E20."""
 
 from collections.abc import Iterator
 from typing import Any
@@ -50,6 +50,7 @@ def test_e04_create_appears_in_list(api: httpx.Client, user_a: dict[str, str], c
     assert {k: rows[tid][k] for k in BASE} == BASE
 
 
+@pytest.mark.edit
 def test_e05_update_is_reflected(api: httpx.Client, user_a: dict[str, str], created: list[str]) -> None:
     tid = create(api, user_a, created, BASE).json()["transaction_id"]
     r = api.put(f"/api/transactions/{tid}", json={**BASE, "amount_jpy": 2500}, headers=user_a)
@@ -95,6 +96,7 @@ def test_invalid_input_is_400_and_not_saved(
     assert len(list_all(api, user_a)) == before
 
 
+@pytest.mark.edit
 def test_invalid_update_is_400(api: httpx.Client, user_a: dict[str, str], created: list[str]) -> None:
     tid = create(api, user_a, created, BASE).json()["transaction_id"]
     assert api.put(f"/api/transactions/{tid}", json={**BASE, "amount_jpy": 1.5}, headers=user_a).status_code == 400

@@ -25,7 +25,8 @@ import pytest
 HERE = Path(__file__).parent
 FEATURES = {
     "auth": "A1: 401/403 handling",
-    "crud": "A2/A5: create, update, delete, input validation",
+    "crud": "A2/A5: create, delete, input validation",
+    "edit": "A2/A3/A5: edit, including cross-user edit",
     "isolation": "A3: users cannot see or change each other's data",
     "list": "A2: list filtered by month, ordered by date",
     "summary": "A4: monthly summary matches the golden set and the list",

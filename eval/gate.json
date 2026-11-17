@@ -1,4 +1,4 @@
 {
   "description": "Features whose evaluation cases are required. Add a feature in the PR that implements it. Removing one loosens the gate and needs human approval (CODEOWNERS).",
-  "enabled_features": ["auth"]
+  "enabled_features": ["auth", "crud", "list", "isolation"]
 }

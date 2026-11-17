@@ -1,30 +1,39 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
-from app.auth import CurrentUser, get_current_user
+from app.auth import get_current_user
+from app.repository import TransactionRepository, get_repository
+from app.schemas import Month, Transaction, TransactionCreated, TransactionInput
 
-# すべてのエンドポイントで認証を必須にする。中身は Issue #12、#13 で実装する
+# すべてのエンドポイントで認証を必須にする。データアクセスは必ずリポジトリを通す(user_id はそこで付く)
 router = APIRouter(prefix="/api/transactions", tags=["transactions"], dependencies=[Depends(get_current_user)])
 
 
-def _not_implemented() -> HTTPException:
-    return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Not implemented yet")
+def _not_found() -> HTTPException:
+    # 他人の取引も 404 にして、存在を漏らさない(A3)
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
 
 
-@router.get("")
-def list_transactions(user: CurrentUser = Depends(get_current_user)) -> None:
-    raise _not_implemented()
+@router.get("", response_model=list[Transaction])
+def list_transactions(
+    month: Month | None = Query(default=None),
+    repo: TransactionRepository = Depends(get_repository),
+) -> list[Transaction]:
+    return repo.list(month)
 
 
-@router.post("")
-def create_transaction(user: CurrentUser = Depends(get_current_user)) -> None:
-    raise _not_implemented()
+@router.post("", response_model=TransactionCreated, status_code=status.HTTP_201_CREATED)
+def create_transaction(body: TransactionInput, repo: TransactionRepository = Depends(get_repository)) -> Transaction:
+    return repo.create(body)
 
 
 @router.put("/{transaction_id}")
-def update_transaction(transaction_id: str, user: CurrentUser = Depends(get_current_user)) -> None:
-    raise _not_implemented()
+def update_transaction(transaction_id: str) -> None:  # noqa: ARG001
+    # Issue #13 で実装する
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Not implemented yet")
 
 
-@router.delete("/{transaction_id}")
-def delete_transaction(transaction_id: str, user: CurrentUser = Depends(get_current_user)) -> None:
-    raise _not_implemented()
+@router.delete("/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_transaction(transaction_id: str, repo: TransactionRepository = Depends(get_repository)) -> Response:
+    if not repo.delete(transaction_id):
+        raise _not_found()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
