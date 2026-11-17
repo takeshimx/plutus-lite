@@ -1,0 +1,78 @@
+# main へのマージで実行し、API と画面をビルドして plutus-lite-dev の Cloud Run にデプロイする(Issue #15)。
+# 手順と、トリガーで渡す値は docs/deploy.md を参照。
+# _ALLOWED_EMAILS と _FIREBASE_API_KEY はリポジトリに書かず、トリガーの設定で渡す。
+
+substitutions:
+  _REGION: asia-northeast1
+  _REPO: asia-northeast1-docker.pkg.dev/${PROJECT_ID}/plutus-lite
+  _API_URL: https://plutus-lite-api-e2dwrztzrq-an.a.run.app
+  _WEB_URL: https://plutus-lite-web-e2dwrztzrq-an.a.run.app
+  _FIREBASE_AUTH_DOMAIN: ${PROJECT_ID}.firebaseapp.com
+  _ALLOWED_EMAILS: ""
+  _FIREBASE_API_KEY: ""
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  dynamicSubstitutions: true
+
+steps:
+  - id: check-settings
+    name: bash
+    script: |
+      #!/usr/bin/env bash
+      set -eu
+      [ -n "${_ALLOWED_EMAILS}" ] || { echo "_ALLOWED_EMAILS is empty"; exit 1; }
+      [ -n "${_FIREBASE_API_KEY}" ] || { echo "_FIREBASE_API_KEY is empty"; exit 1; }
+    automapSubstitutions: true
+
+  - id: build-api
+    name: gcr.io/cloud-builders/docker
+    args: ["build", "-t", "${_REPO}/api:${SHORT_SHA}", "api"]
+    waitFor: ["check-settings"]
+
+  - id: build-web
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REPO}/web:${SHORT_SHA}
+      - --build-arg=NEXT_PUBLIC_FIREBASE_API_KEY=${_FIREBASE_API_KEY}
+      - --build-arg=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${_FIREBASE_AUTH_DOMAIN}
+      - --build-arg=NEXT_PUBLIC_FIREBASE_PROJECT_ID=${PROJECT_ID}
+      - --build-arg=NEXT_PUBLIC_API_BASE_URL=${_API_URL}
+      - frontend
+    waitFor: ["check-settings"]
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args: ["push", "--all-tags", "${_REPO}/api"]
+    waitFor: ["build-api"]
+
+  - id: push-web
+    name: gcr.io/cloud-builders/docker
+    args: ["push", "--all-tags", "${_REPO}/web"]
+    waitFor: ["build-web"]
+
+  # 環境変数の区切りに "@" を使う(許可リストに "," を含められるようにするため)
+  - id: deploy-api
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - plutus-lite-api
+      - --image=${_REPO}/api:${SHORT_SHA}
+      - --region=${_REGION}
+      - --update-env-vars=^@^GCP_PROJECT_ID=${PROJECT_ID}@BQ_DATASET=plutus_lite@CORS_ORIGINS=${_WEB_URL}@ALLOWED_EMAILS=${_ALLOWED_EMAILS}
+    waitFor: ["push"]
+
+  - id: deploy-web
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - plutus-lite-web
+      - --image=${_REPO}/web:${SHORT_SHA}
+      - --region=${_REGION}
+    waitFor: ["push-web", "deploy-api"]
