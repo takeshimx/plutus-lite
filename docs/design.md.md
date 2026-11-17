@@ -51,6 +51,10 @@ GROUP BY month
 ORDER BY month DESC
 ```
 
+支出のカテゴリ別内訳は、同じ絞り込みで `type = 'expense'` の行を月とカテゴリでまとめる。並び順は金額の大きい順、同額ならカテゴリ名の順。
+
+金額の符号(2026-11-17 決定): 合計は金額をそのまま足す。支出のマイナスは返金として支出合計と内訳から差し引き、収入のマイナスは訂正として収入合計から差し引く。
+
 案B(Firestore)なら、users/{user\_id}/transactions/{transaction\_id} の形に置き、集計はAPI側のPythonで行う。案C(Cloud SQL)なら、上の列をそのまま通常のテーブルにでき、SQLも同じものが使える。
 
 ## 3. API仕様
@@ -62,9 +66,9 @@ ORDER BY month DESC
 | GET /healthz | 生存確認(認証なし) | 200 | A7 |
 | GET /api/transactions?month=YYYY-MM | 取引の一覧(月で絞る。省略時は全件) | 200, 401, 403 | A1, A2, A3 |
 | POST /api/transactions | 取引の登録 | 201, 400, 401, 403 | A2, A5 |
-| PUT /api/transactions/{id} | 取引の編集 | 200, 400, 404 | A2, A3, A5 |
-| DELETE /api/transactions/{id} | 取引の削除 | 204, 404 | A2, A3 |
-| GET /api/summary/monthly | 月次サマリー(収入合計、支出合計) | 200, 401, 403 | A4, A6 |
+| PUT /api/transactions/{id} | 取引の編集 | 200, 400, 401, 403, 404 | A2, A3, A5 |
+| DELETE /api/transactions/{id} | 取引の削除 | 204, 401, 403, 404 | A2, A3 |
+| GET /api/summary/monthly | 月次サマリー(収入合計、支出合計、支出のカテゴリ別内訳) | 200, 401, 403 | A4, A6 |
 
 エラーの扱い
 
@@ -125,6 +129,13 @@ paths:
                     month: { type: string }
                     income_total: { type: integer }
                     expense_total: { type: integer }
+                    expense_by_category:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          category: { type: string }
+                          total: { type: integer }
 components:
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer }
@@ -196,3 +207,9 @@ ADRは「なぜそう決めたか」の記録。ここでは、3件を草案と�
 - 代償: 取引が増えるとクエリが重くなる可能性があるが、この規模では問題にならないと見ている。
 
 G2でご確認いただく点は、ADR-001の保存先の選択、コスト見積の「未確認」の行をどう扱うかの2点です。
+
+## 変更履歴
+
+| 日付 | 変更 | 理由 |
+| --- | --- | --- |
+| 2026-11-17 | 月次サマリーに支出のカテゴリ別内訳を追加。金額の符号の扱いを明記。PUT と DELETE の応答に 401、403 を追加 | 要件定義書の機能4(カテゴリ別内訳)が設計に入っていなかった。負の金額の意味が未定だった。P5 の golden set を作るにあたり決定 |

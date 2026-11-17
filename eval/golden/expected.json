@@ -1,0 +1,100 @@
+{
+  "user_a": {
+    "monthly_summary": [
+      {
+        "month": "2026-12",
+        "income_total": 0,
+        "expense_total": 2000,
+        "expense_by_category": [
+          {
+            "category": "食費",
+            "total": 2000
+          }
+        ]
+      },
+      {
+        "month": "2026-11",
+        "income_total": 295000,
+        "expense_total": 16200,
+        "expense_by_category": [
+          {
+            "category": "日用品",
+            "total": 8000
+          },
+          {
+            "category": "食費",
+            "total": 6200
+          },
+          {
+            "category": "交通費",
+            "total": 2000
+          }
+        ]
+      },
+      {
+        "month": "2026-10",
+        "income_total": 300000,
+        "expense_total": 4000,
+        "expense_by_category": [
+          {
+            "category": "食費",
+            "total": 4000
+          }
+        ]
+      }
+    ],
+    "list_by_month": {
+      "2026-12": {
+        "count": 1,
+        "keys_in_order": [
+          "a10"
+        ]
+      },
+      "2026-11": {
+        "count": 7,
+        "keys_in_order": [
+          "a09",
+          "a08",
+          "a07",
+          "a06",
+          "a05",
+          "a04",
+          "a03"
+        ]
+      },
+      "2026-10": {
+        "count": 2,
+        "keys_in_order": [
+          "a02",
+          "a01"
+        ]
+      }
+    },
+    "list_all_count": 10
+  },
+  "user_b": {
+    "monthly_summary": [
+      {
+        "month": "2026-11",
+        "income_total": 500000,
+        "expense_total": 99999,
+        "expense_by_category": [
+          {
+            "category": "食費",
+            "total": 99999
+          }
+        ]
+      }
+    ],
+    "list_by_month": {
+      "2026-11": {
+        "count": 2,
+        "keys_in_order": [
+          "b02",
+          "b01"
+        ]
+      }
+    },
+    "list_all_count": 2
+  }
+}
