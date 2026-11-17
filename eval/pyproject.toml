@@ -1,0 +1,16 @@
+[project]
+name = "plutus-lite-eval"
+version = "0.1.0"
+description = "Black-box evaluation of the plutus-lite API against the golden set"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28",
+    "pytest>=8.3",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+addopts = "-ra"

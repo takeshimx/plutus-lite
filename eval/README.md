@@ -33,6 +33,17 @@ API が受入条件を満たしているかを自動で判定する。正解(gol
 
 user_b(2026-11): 収入 500,000、支出 99,999。user_a の結果に、user_b の値が混ざらないことを確かめる。
 
+## 実行
+
+    cd eval
+    uv sync
+    uv run pytest
+
+- `test_golden_integrity.py` は常に実行する。`expected.json` が `dataset.json` から計算した値と一致し、G5 で承認した値から変わっていないことを確かめる
+- それ以外のテストは、`gate.json` の `enabled_features` に機能名を入れたときだけ実行する。機能名は `auth`、`crud`、`isolation`、`list`、`summary`
+- 機能を有効にすると、API の接続先とテスト用アカウントのトークン(`EVAL_BASE_URL`、`EVAL_TOKEN_USER_A`、`EVAL_TOKEN_USER_B`、`EVAL_TOKEN_NOT_ALLOWED`)が必須になる。無ければ合格せずにエラーになる
+- テスト用アカウントは、取引が0件の状態で始まることを前提にする
+
 ## テストケース
 
 API は `/api` 配下(docs/design.md.md の 3節)。
@@ -55,7 +66,7 @@ API は `/api` 配下(docs/design.md.md の 3節)。
 | E14 | A5 | 同上 | type が income、expense 以外 | 400 |
 | E15 | A5 | 同上 | 日付が 2026-02-30 / 2026-13-01 / 空 | 400 |
 | E16 | A5 | 同上 | メモが201文字 / カテゴリが無し | 400 |
-| E17 | A5 | 同上 | リクエストに user_id を含めて登録する | user_id は無視され、トークンの UID で保存される |
+| E17 | A5 | 同上 | リクエストに user_id を含めて登録する | 400、または user_id を無視してトークンの UID で保存する。他人のデータにはならない |
 | E18 | A5 | 同上 | 金額 0 / カテゴリが空文字 | 400 |
 | E19 | A5 | 同上 | 金額 10,000,000,000 と −10,000,000,000 | 201(上限ちょうどは受け付ける) |
 | E20 | A5 | 同上 | 金額 10,000,000,001 と −10,000,000,001 | 400 |
