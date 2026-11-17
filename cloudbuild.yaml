@@ -28,6 +28,7 @@ steps:
   - id: build-api
     name: gcr.io/cloud-builders/docker
     args: ["build", "-t", "${_REPO}/api:${SHORT_SHA}", "api"]
+    env: ["DOCKER_BUILDKIT=1"] # Dockerfile の RUN --mount に必要
     waitFor: ["check-settings"]
 
   - id: build-web
@@ -41,6 +42,7 @@ steps:
       - --build-arg=NEXT_PUBLIC_FIREBASE_PROJECT_ID=${PROJECT_ID}
       - --build-arg=NEXT_PUBLIC_API_BASE_URL=${_API_URL}
       - frontend
+    env: ["DOCKER_BUILDKIT=1"]
     waitFor: ["check-settings"]
 
   - id: push
