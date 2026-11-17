@@ -38,7 +38,7 @@
 
 ## 開発コマンド
 
-パッケージ管理は、Python が uv、画面が npm。具体的なスクリプト名はP3の雛形作成時に確定し、ここを更新する。
+パッケージ管理は、Python が uv、画面が npm(Node 24)。
 
     # API
     cd api && uv sync
@@ -50,14 +50,15 @@
     cd frontend && npm ci
     npm test
     npm run lint && npm run typecheck
+    npm run build
     npx playwright test              # E2E
 
     # インフラ(検証環境のみ)
     cd infra && terraform fmt -check && terraform validate
     terraform plan                   # apply は人の承認後
 
-    # 評価ゲート(P5で整備)
-    【未定】
+    # 評価ゲート(eval/README.md)。gate.json で有効な機能があれば、模擬版と API を自動で起動する
+    scripts/eval_run.sh
 
 ## 必ず守る設計上の決まり
 
@@ -101,7 +102,7 @@
 - IaC: `infra/`
 - CI/CDとリポジトリ設定: `.github/`、`cloudbuild*.yaml`、`CODEOWNERS`
 - この規約自体: `AGENTS.md`、`CLAUDE.md`
-- 評価ゲートの合格基準と golden set の正解ラベル: `eval/`
+- 評価ゲートの合格基準と golden set の正解ラベル、評価の実行手順: `eval/`、`scripts/eval_*`
 
 次の操作はエージェントが行わない。
 
