@@ -1,0 +1,21 @@
+{
+  "description": "Fixed transactions for the evaluation gate. Two users to check data isolation (A3). Amounts are signed integers: a negative expense is a refund, a negative income is a correction.",
+  "users": {
+    "user_a": [
+      { "key": "a01", "date": "2026-10-25", "type": "income",  "amount_jpy": 300000, "category": "給与",   "note": "October salary" },
+      { "key": "a02", "date": "2026-10-31", "type": "expense", "amount_jpy": 4000,   "category": "食費",   "note": "last day of month" },
+      { "key": "a03", "date": "2026-11-01", "type": "expense", "amount_jpy": 1200,   "category": "食費",   "note": "first day of month" },
+      { "key": "a04", "date": "2026-11-10", "type": "expense", "amount_jpy": 5000,   "category": "食費",   "note": null },
+      { "key": "a05", "date": "2026-11-15", "type": "expense", "amount_jpy": 3000,   "category": "交通費", "note": null },
+      { "key": "a06", "date": "2026-11-20", "type": "expense", "amount_jpy": -1000,  "category": "交通費", "note": "refund" },
+      { "key": "a07", "date": "2026-11-25", "type": "income",  "amount_jpy": 300000, "category": "給与",   "note": "November salary" },
+      { "key": "a08", "date": "2026-11-28", "type": "income",  "amount_jpy": -5000,  "category": "給与",   "note": "income correction" },
+      { "key": "a09", "date": "2026-11-30", "type": "expense", "amount_jpy": 8000,   "category": "日用品", "note": null },
+      { "key": "a10", "date": "2026-12-01", "type": "expense", "amount_jpy": 2000,   "category": "食費",   "note": null }
+    ],
+    "user_b": [
+      { "key": "b01", "date": "2026-11-05", "type": "expense", "amount_jpy": 99999,  "category": "食費",   "note": "must never appear for user_a" },
+      { "key": "b02", "date": "2026-11-25", "type": "income",  "amount_jpy": 500000, "category": "給与",   "note": "must never appear for user_a" }
+    ]
+  }
+}
