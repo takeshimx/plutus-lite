@@ -32,3 +32,14 @@ export function updateTransaction(user: User, id: string, input: TransactionInpu
 export function deleteTransaction(user: User, id: string): Promise<void> {
   return apiFetch(user, `/api/transactions/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
+
+export interface MonthlySummary {
+  month: string;
+  income_total: number;
+  expense_total: number;
+  expense_by_category: { category: string; total: number }[];
+}
+
+export function getMonthlySummary(user: User): Promise<MonthlySummary[]> {
+  return apiFetch(user, "/api/summary/monthly");
+}

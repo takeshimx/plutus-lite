@@ -55,7 +55,8 @@ def test_every_operation_passes_the_current_uid(repo: TransactionRepository, cli
     repo.create(TransactionInput(date="2026-11-03", type="expense", amount_jpy=100, category="食費"))  # type: ignore[arg-type]
     repo.delete("tx-1")
     repo.update("tx-1", TransactionInput(date="2026-11-04", type="income", amount_jpy=5, category="給与"))  # type: ignore[arg-type]
-    assert len(client.calls) == 7  # list x2, insert, (get, delete), (get, update)
+    repo.monthly_summary()
+    assert len(client.calls) == 9  # list x2, insert, (get, delete), (get, update), summary x2
     for sql, params in client.calls:
         assert params["user_id"] == "uid-a"
         assert "@user_id" in sql
@@ -119,3 +120,13 @@ def test_update_returns_new_values_and_keeps_created_at(repo: TransactionReposit
     assert updated is not None
     assert (updated.amount_jpy, updated.type, updated.category) == (5, "income", "給与")
     assert updated.created_at.isoformat().startswith("2026-11-03")
+
+
+def test_summary_uses_the_same_scope_as_the_list(repo: TransactionRepository, client: FakeClient) -> None:
+    """A4/ADR-003: list and summary are filtered by the same _scope()."""
+    repo.list(None)
+    repo.monthly_summary()
+    list_where = client.calls[0][0].split("WHERE ")[1].split(" ORDER BY")[0]
+    for sql, _ in client.calls[1:]:
+        assert f"WHERE {list_where}" in sql
+        assert "SUM(" in sql  # totals are computed in SQL (A6)

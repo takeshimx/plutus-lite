@@ -60,3 +60,15 @@ class Transaction(BaseModel):
 
 class TransactionCreated(Transaction):
     pass
+
+
+class CategoryTotal(BaseModel):
+    category: str
+    total: int
+
+
+class MonthlySummary(BaseModel):
+    month: str
+    income_total: int
+    expense_total: int
+    expense_by_category: list[CategoryTotal]
