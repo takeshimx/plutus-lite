@@ -51,3 +51,26 @@ resource "google_project_iam_member" "build_log_writer" {
   role    = "roles/logging.logWriter"
   member  = local.build_sa
 }
+
+# 許可リスト(ログインを許可するメールアドレス)。値は人が gcloud で登録し、リポジトリには書かない(ADR-002)
+resource "google_secret_manager_secret" "allowed_emails" {
+  project   = var.project_id
+  secret_id = "plutus-lite-allowed-emails"
+
+  # 保存場所は東京の1か所だけにする
+  replication {
+    user_managed {
+      replicas {
+        location = "asia-northeast1"
+      }
+    }
+  }
+}
+
+# API の実行用アカウントだけが読める
+resource "google_secret_manager_secret_iam_member" "api_reads_allowed_emails" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.allowed_emails.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:plutus-lite-api@${var.project_id}.iam.gserviceaccount.com"
+}

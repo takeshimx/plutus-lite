@@ -52,6 +52,8 @@ def create_app() -> FastAPI:
         errors = [{k: v for k, v in e.items() if k in ("loc", "msg", "type")} for e in exc.errors()]
         return JSONResponse(status_code=400, content={"detail": jsonable_encoder(errors)})
 
+    # Cloud Run では /healthz が Google 側で予約されていて届かないため、/health も用意する
+    @app.get("/health", include_in_schema=False)
     @app.get("/healthz", include_in_schema=False)
     def healthz() -> dict[str, str]:
         return {"status": "ok"}

@@ -51,8 +51,9 @@ def h(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_healthz_needs_no_token(client: TestClient) -> None:
-    assert client.get("/healthz").status_code == 200
+@pytest.mark.parametrize("path", ["/healthz", "/health"])
+def test_health_needs_no_token(client: TestClient, path: str) -> None:
+    assert client.get(path).status_code == 200
 
 
 @pytest.mark.parametrize("path", ["/api/transactions", "/api/summary/monthly"])
