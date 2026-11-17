@@ -9,7 +9,16 @@ from app.schemas import TransactionInput
 
 
 class FakeRow:
-    n = 1
+    def items(self) -> list[tuple[str, Any]]:
+        return [
+            ("transaction_id", "tx-1"),
+            ("date", "2026-11-03"),
+            ("type", "expense"),
+            ("amount_jpy", 100),
+            ("category", "食費"),
+            ("note", None),
+            ("created_at", "2026-11-03T00:00:00Z"),
+        ]
 
 
 class FakeJob:
@@ -17,7 +26,7 @@ class FakeJob:
         self._sql = sql
 
     def result(self) -> list[Any]:
-        return [FakeRow()] if "COUNT(*)" in self._sql else []
+        return [FakeRow()] if self._sql.startswith("SELECT") and "transaction_id = @" in self._sql else []
 
 
 class FakeClient:
@@ -45,15 +54,18 @@ def test_every_operation_passes_the_current_uid(repo: TransactionRepository, cli
     repo.list("2026-11")
     repo.create(TransactionInput(date="2026-11-03", type="expense", amount_jpy=100, category="食費"))  # type: ignore[arg-type]
     repo.delete("tx-1")
-    assert len(client.calls) == 5  # list x2, insert, ownership check, delete
+    repo.update("tx-1", TransactionInput(date="2026-11-04", type="income", amount_jpy=5, category="給与"))  # type: ignore[arg-type]
+    repo.monthly_summary()
+    assert len(client.calls) == 9  # list x2, insert, (get, delete), (get, update), summary x2
     for sql, params in client.calls:
         assert params["user_id"] == "uid-a"
         assert "@user_id" in sql
 
 
-def test_reads_and_deletes_filter_by_user(repo: TransactionRepository, client: FakeClient) -> None:
+def test_reads_updates_and_deletes_filter_by_user(repo: TransactionRepository, client: FakeClient) -> None:
     repo.list("2026-11")
     repo.delete("tx-1")
+    repo.update("tx-1", TransactionInput(date="2026-11-04", type="income", amount_jpy=5, category="給与"))  # type: ignore[arg-type]
     for sql, _ in client.calls:
         assert "WHERE user_id = @user_id" in sql
 
@@ -86,7 +98,7 @@ def test_empty_uid_is_refused(client: FakeClient) -> None:
         TransactionRepository(client, "p.d.transactions", "")  # type: ignore[arg-type]
 
 
-def test_delete_checks_ownership_first(client: FakeClient) -> None:
+def test_delete_and_update_check_ownership_first(client: FakeClient) -> None:
     class NotOwned(FakeClient):
         def query(self, sql: str, job_config: Any) -> FakeJob:
             super().query(sql, job_config)
@@ -97,4 +109,24 @@ def test_delete_checks_ownership_first(client: FakeClient) -> None:
     other = NotOwned()
     repo = TransactionRepository(other, "p.d.transactions", "uid-b")  # type: ignore[arg-type]
     assert repo.delete("tx-of-user-a") is False
-    assert not any(sql.startswith("DELETE") for sql, _ in other.calls)
+    data = TransactionInput(date="2026-11-04", type="income", amount_jpy=5, category="x")  # type: ignore[arg-type]
+    assert repo.update("tx-of-user-a", data) is None
+    assert not any(sql.startswith(("DELETE", "UPDATE")) for sql, _ in other.calls)
+
+
+def test_update_returns_new_values_and_keeps_created_at(repo: TransactionRepository) -> None:
+    data = TransactionInput(date="2026-11-04", type="income", amount_jpy=5, category="給与")  # type: ignore[arg-type]
+    updated = repo.update("tx-1", data)
+    assert updated is not None
+    assert (updated.amount_jpy, updated.type, updated.category) == (5, "income", "給与")
+    assert updated.created_at.isoformat().startswith("2026-11-03")
+
+
+def test_summary_uses_the_same_scope_as_the_list(repo: TransactionRepository, client: FakeClient) -> None:
+    """A4/ADR-003: list and summary are filtered by the same _scope()."""
+    repo.list(None)
+    repo.monthly_summary()
+    list_where = client.calls[0][0].split("WHERE ")[1].split(" ORDER BY")[0]
+    for sql, _ in client.calls[1:]:
+        assert f"WHERE {list_where}" in sql
+        assert "SUM(" in sql  # totals are computed in SQL (A6)
