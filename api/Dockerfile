@@ -8,7 +8,9 @@ ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 COPY pyproject.toml uv.lock ./
 # 手元のビルドで社内プロキシやウイルス対策ソフトの証明書が必要な場合だけ、--secret id=extra_ca で渡す。
 # イメージには残らない。CI では渡さない
-RUN --mount=type=secret,id=extra_ca,required=false     if [ -f /run/secrets/extra_ca ]; then export SSL_CERT_FILE=/run/secrets/extra_ca; fi;     uv sync --locked --no-dev --no-install-project
+RUN --mount=type=secret,id=extra_ca,required=false \
+    if [ -f /run/secrets/extra_ca ]; then export SSL_CERT_FILE=/run/secrets/extra_ca; fi; \
+    uv sync --locked --no-dev --no-install-project
 
 COPY app ./app
 

@@ -33,3 +33,21 @@ resource "google_project_iam_member" "api_bq_job_user" {
   role    = "roles/bigquery.jobUser"
   member  = "serviceAccount:plutus-lite-api@${var.project_id}.iam.gserviceaccount.com"
 }
+
+# Cloud Build のデプロイ用サービスアカウント(Issue #15)。
+# Cloud Run のサービスを更新する権限と、ビルドのログを書く権限
+locals {
+  build_sa = "serviceAccount:plutus-lite-build@${var.project_id}.iam.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "build_run_developer" {
+  project = var.project_id
+  role    = "roles/run.developer"
+  member  = local.build_sa
+}
+
+resource "google_project_iam_member" "build_log_writer" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member  = local.build_sa
+}
