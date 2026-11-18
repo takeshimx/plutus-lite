@@ -84,6 +84,18 @@ def test_429_after_limit_with_retry_after(client: TestClient) -> None:
     assert int(r.headers["Retry-After"]) >= 1
 
 
+def test_retry_after_is_at_least_one_second(client: TestClient) -> None:
+    """Retry-After must never be 0, even when less than a second is left in the window."""
+    clock = Clock()
+    limiter = RateLimiter(1, clock=clock)
+    client.app.dependency_overrides[get_rate_limiter] = lambda: limiter  # type: ignore[attr-defined]
+    assert client.get("/api/transactions", headers=h("a")).status_code == 200
+    clock.now += 59.6  # 0.4 seconds left
+    r = client.get("/api/transactions", headers=h("a"))
+    assert r.status_code == 429
+    assert r.headers["Retry-After"] == "1"
+
+
 def test_limit_is_per_user_and_per_endpoint(client: TestClient) -> None:
     for _ in range(2):
         client.get("/api/transactions", headers=h("a"))

@@ -31,6 +31,10 @@ def test_accepted_amounts(amount: int) -> None:
         {"date": ""},
         {"date": 1700000000},
         {"date": "2026-11-03T00:00:00"},
+        # Only YYYY-MM-DD. Python's date.fromisoformat also accepts these other ISO forms
+        {"date": "20261103"},
+        {"date": "2026-W45-2"},
+        {"date": "２０２６-１１-０３"},  # full-width digits
         {"category": ""},
         {"category": "   "},
         {"category": 123},
